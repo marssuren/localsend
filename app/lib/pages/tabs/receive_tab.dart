@@ -2,18 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/pages/home_page.dart';
 import 'package:localsend_app/pages/home_page_controller.dart';
+import 'package:localsend_app/pages/progress_page.dart';
 import 'package:localsend_app/pages/receive_history_page.dart';
+import 'package:localsend_app/pages/receive_page.dart';
 import 'package:localsend_app/pages/tabs/receive_tab_vm.dart';
 import 'package:localsend_app/provider/animation_provider.dart';
+import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/util/ip_helper.dart';
 import 'package:localsend_app/widget/animations/initial_fade_transition.dart';
 import 'package:localsend_app/widget/column_list_view.dart';
 import 'package:localsend_app/widget/custom_icon_button.dart';
 import 'package:localsend_app/widget/local_send_logo.dart';
+import 'package:localsend_app/widget/opacity_slideshow.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:localsend_app/widget/rotating_widget.dart';
+import 'package:nekoto/widgets/Animation/FlickerAnimation.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
+import 'package:badges/badges.dart' as badges;
 
 enum _QuickSaveMode {
   off,
@@ -32,7 +38,8 @@ class ReceiveTab extends StatelessWidget {
       children: [
         Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: ResponsiveListView.defaultMaxWidth),
+            constraints: const BoxConstraints(
+                maxWidth: ResponsiveListView.defaultMaxWidth),
             child: Padding(
               padding: const EdgeInsets.all(30),
               child: ColumnListView(
@@ -47,23 +54,34 @@ class ReceiveTab extends StatelessWidget {
                           delay: const Duration(milliseconds: 200),
                           child: Consumer(builder: (context, ref) {
                             final animations = ref.watch(animationProvider);
-                            final activeTab = ref.watch(homePageControllerProvider.select((state) => state.currentTab));
+                            final activeTab = ref.watch(
+                                homePageControllerProvider
+                                    .select((state) => state.currentTab));
                             return RotatingWidget(
                               duration: const Duration(seconds: 15),
-                              spinning: vm.serverState != null && animations && activeTab == HomeTab.receive,
+                              spinning: vm.serverState != null &&
+                                  animations &&
+                                  activeTab == HomeTab.receive,
                               child: const LocalSendLogo(withText: false),
                             );
                           }),
                         ),
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text(vm.serverState?.alias ?? vm.aliasSettings, style: const TextStyle(fontSize: 48)),
+                          child: Text(vm.serverState?.alias ?? vm.aliasSettings,
+                              style: const TextStyle(fontSize: 48)),
                         ),
                         InitialFadeTransition(
                           duration: const Duration(milliseconds: 300),
                           delay: const Duration(milliseconds: 500),
                           child: Text(
-                            vm.serverState == null ? t.general.offline : vm.localIps.map((ip) => '#${ip.visualId}').toSet().join(' '),
+                            vm.serverState == null
+                                ? t.general.offline
+                                : vm.localIps
+                                    .map(
+                                        (ip) => 'ip: $ip\ntag: #${ip.visualId}')
+                                    .toSet()
+                                    .join('\n'),
                             style: const TextStyle(fontSize: 24),
                             textAlign: TextAlign.center,
                           ),
@@ -86,23 +104,31 @@ class ReceiveTab extends StatelessWidget {
                               if (selection.contains(_QuickSaveMode.off)) {
                                 await vm.onSetQuickSave(context, false);
                                 if (context.mounted) {
-                                  await vm.onSetQuickSaveFromFavorites(context, false);
+                                  await vm.onSetQuickSaveFromFavorites(
+                                      context, false);
                                 }
-                              } else if (selection.contains(_QuickSaveMode.favorites)) {
+                              } else if (selection
+                                  .contains(_QuickSaveMode.favorites)) {
                                 await vm.onSetQuickSave(context, false);
                                 if (context.mounted) {
-                                  await vm.onSetQuickSaveFromFavorites(context, true);
+                                  await vm.onSetQuickSaveFromFavorites(
+                                      context, true);
                                 }
-                              } else if (selection.contains(_QuickSaveMode.on)) {
-                                await vm.onSetQuickSaveFromFavorites(context, false);
+                              } else if (selection
+                                  .contains(_QuickSaveMode.on)) {
+                                await vm.onSetQuickSaveFromFavorites(
+                                    context, false);
                                 if (context.mounted) {
                                   await vm.onSetQuickSave(context, true);
                                 }
                               }
                             },
                             selected: {
-                              if (!vm.quickSaveSettings && !vm.quickSaveFromFavoritesSettings) _QuickSaveMode.off,
-                              if (vm.quickSaveFromFavoritesSettings) _QuickSaveMode.favorites,
+                              if (!vm.quickSaveSettings &&
+                                  !vm.quickSaveFromFavoritesSettings)
+                                _QuickSaveMode.off,
+                              if (vm.quickSaveFromFavoritesSettings)
+                                _QuickSaveMode.favorites,
                               if (vm.quickSaveSettings) _QuickSaveMode.on,
                             },
                             segments: [
@@ -161,6 +187,22 @@ class _CornerButtons extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            if (context.ref.read(serverProvider)?.session != null)
+              FlickerAnimation(
+                totalRepeatCount: -1,
+                autoPlay: true,
+                frequency: 0.8,
+                child: CustomIconButton(
+                  onPressed: () async {
+                    final receiveSession =
+                        context.ref.read(serverProvider)?.session;
+                    if (receiveSession != null) {
+                      await context.push(() => ReceivePage());
+                    }
+                  },
+                  child: const Icon(Icons.pending_actions),
+                ),
+              ),
             if (!showAdvanced)
               AnimatedOpacity(
                 opacity: showHistoryButton ? 1 : 0,
