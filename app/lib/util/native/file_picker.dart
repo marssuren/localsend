@@ -15,7 +15,8 @@ import 'package:localsend_app/provider/selection/selected_sending_files_provider
 import 'package:localsend_app/util/determine_image_type.dart';
 import 'package:localsend_app/util/file_path_helper.dart';
 import 'package:localsend_app/util/image_converter.dart';
-import 'package:localsend_app/util/native/channel/android_channel.dart' as android_channel;
+import 'package:localsend_app/util/native/channel/android_channel.dart'
+    as android_channel;
 import 'package:localsend_app/util/native/cross_file_converters.dart';
 import 'package:localsend_app/util/native/pick_directory_path.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
@@ -146,24 +147,28 @@ Future<void> _pickFiles(BuildContext context, Ref ref) async {
   if (checkPlatform([TargetPlatform.android])) {
     // On android, the files are copied to the cache which takes some time.
     // ignore: unawaited_futures
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const LoadingDialog(),
-    );
+    // showDialog(
+    //   context: context,
+    //   barrierDismissible: false,
+    //   builder: (_) => const LoadingDialog(),
+    // );
   }
   try {
     if (defaultTargetPlatform == TargetPlatform.android) {
       final result = await android_channel.pickFilesAndroid();
       if (result != null) {
-        await ref.redux(selectedSendingFilesProvider).dispatchAsync(AddFilesAction(
+        await ref
+            .redux(selectedSendingFilesProvider)
+            .dispatchAsync(AddFilesAction(
               files: result,
               converter: CrossFileConverters.convertFileInfo,
             ));
       }
     } else {
       final result = await openFiles();
-      await ref.redux(selectedSendingFilesProvider).dispatchAsync(AddFilesAction(
+      await ref
+          .redux(selectedSendingFilesProvider)
+          .dispatchAsync(AddFilesAction(
             files: result,
             converter: CrossFileConverters.convertXFile,
           ));
@@ -176,7 +181,8 @@ Future<void> _pickFiles(BuildContext context, Ref ref) async {
     }
 
     // ignore: use_build_context_synchronously
-    await showDialog(context: context, builder: (_) => const NoPermissionDialog());
+    await showDialog(
+        context: context, builder: (_) => const NoPermissionDialog());
     _logger.warning('Failed to pick files', e);
   } finally {
     // ignore: use_build_context_synchronously
@@ -198,23 +204,34 @@ Future<void> _pickFolder(BuildContext context, Ref ref) async {
   }
 
   // ignore: unawaited_futures
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => const LoadingDialog(),
-  );
+  // showDialog(
+  //   context: context,
+  //   barrierDismissible: false,
+  //   builder: (_) => const LoadingDialog(),
+  // );
+
+
   await sleepAsync(200); // Wait for the dialog to be shown
   try {
-    if (defaultTargetPlatform == TargetPlatform.android && (ref.read(deviceInfoProvider).androidSdkInt ?? 0) >= android_channel.contentUriMinSdk) {
+    if (defaultTargetPlatform == TargetPlatform.android &&
+        (ref.read(deviceInfoProvider).androidSdkInt ?? 0) >=
+            android_channel.contentUriMinSdk) {
       // Android 8 and above have more predictable content URIs that we can parse.
       final result = await android_channel.pickDirectoryAndroid();
       if (result != null) {
-        await ref.redux(selectedSendingFilesProvider).dispatchAsync(AddAndroidDirectoryAction(result));
+        await ref
+            .redux(selectedSendingFilesProvider)
+            .dispatchAsync(AddAndroidDirectoryAction(result));
+      }
+      else{
+        print(result);
       }
     } else {
       final directoryPath = await pickDirectoryPath();
       if (directoryPath != null) {
-        await ref.redux(selectedSendingFilesProvider).dispatchAsync(AddDirectoryAction(directoryPath));
+        await ref
+            .redux(selectedSendingFilesProvider)
+            .dispatchAsync(AddDirectoryAction(directoryPath));
       }
     }
   } catch (e) {
@@ -226,19 +243,22 @@ Future<void> _pickFolder(BuildContext context, Ref ref) async {
 
     _logger.warning('Failed to pick directory', e);
     // ignore: use_build_context_synchronously
-    await showDialog(context: context, builder: (_) => const NoPermissionDialog());
+    await showDialog(
+        context: context, builder: (_) => const NoPermissionDialog());
   } finally {
     // ignore: use_build_context_synchronously
     Routerino.context.popUntilRoot(); // remove loading dialog
   }
 }
 
+
 Future<void> _pickMedia(BuildContext context, Ref ref) async {
   final oldBrightness = Theme.of(context).brightness;
   // ignore: use_build_context_synchronously
   final List<AssetEntity>? result = await AssetPicker.pickAssets(
     context,
-    pickerConfig: const AssetPickerConfig(maxAssets: 999, textDelegate: TranslatedAssetPickerTextDelegate()),
+    pickerConfig: const AssetPickerConfig(
+        maxAssets: 999, textDelegate: TranslatedAssetPickerTextDelegate()),
   );
 
   WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -258,16 +278,21 @@ Future<void> _pickMedia(BuildContext context, Ref ref) async {
 }
 
 Future<void> _pickText(BuildContext context, Ref ref) async {
-  final result = await showDialog<String>(context: context, builder: (_) => const MessageInputDialog());
+  final result = await showDialog<String>(
+      context: context, builder: (_) => const MessageInputDialog());
   if (result != null) {
-    ref.redux(selectedSendingFilesProvider).dispatch(AddMessageAction(message: result));
+    ref
+        .redux(selectedSendingFilesProvider)
+        .dispatch(AddMessageAction(message: result));
   }
 }
 
 Future<void> _pickClipboard(BuildContext context, Ref ref) async {
   final data = await Clipboard.getData(Clipboard.kTextPlain);
   if (data?.text != null) {
-    ref.redux(selectedSendingFilesProvider).dispatch(AddMessageAction(message: data!.text!));
+    ref
+        .redux(selectedSendingFilesProvider)
+        .dispatch(AddMessageAction(message: data!.text!));
     return;
   }
 
@@ -312,7 +337,9 @@ Future<void> _pickClipboard(BuildContext context, Ref ref) async {
               return CrossFile(
                 name: file.name,
                 fileType: file.name.guessFileType(),
-                size: await _uriContent.getContentLength(Uri.parse(file.path)) ?? -1,
+                size:
+                    await _uriContent.getContentLength(Uri.parse(file.path)) ??
+                        -1,
                 path: file.path,
                 thumbnail: null,
                 asset: null,
