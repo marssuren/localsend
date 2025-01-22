@@ -5,8 +5,10 @@ import 'package:localsend_app/util/native/channel/android_channel.dart';
 Future<PickDirectoryResult?> getPickDirectoryResultFromPath(
     String directoryPath) async {
   final directory = Directory(directoryPath);
-  if (await directory.exists() &&
-      directory.statSync().type == FileSystemEntityType.directory) {
+  bool directoryExists = await directory.exists();
+  bool isDirectory =
+      directory.statSync().type == FileSystemEntityType.directory;
+  if (directoryExists && isDirectory) {
     final uri = Uri.directory(directoryPath);
     final files = directory.listSync().whereType<File>().map((file) {
       return FileInfo(
