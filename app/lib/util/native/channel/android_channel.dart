@@ -14,15 +14,37 @@ final _logger = Logger('AndroidSaf');
 /// Older versions might also work but the encoded content URI is not guaranteed to work with our algorithm.
 const contentUriMinSdk = 27;
 
-Future<PickDirectoryResult?> pickDirectoryAndroid() async {
-  final result = await _methodChannel.invokeMethod<Map>('pickDirectory');
+Future<PickDirectoryResult?> pickDirectoryAndroid({String? initialPath}) async {
+  final result = await _methodChannel.invokeMethod<Map>('pickDirectory', {
+    'initialPath': initialPath,
+  });
   if (result == null) {
     return null;
   }
 
   return PickDirectoryResultMapper.fromJson({
     'directoryUri': result['directoryUri'],
-    'files': (result['files'] as List).map((e) => FileInfoMapper.fromJson((e as Map).cast<String, dynamic>())).toList(),
+    'files': (result['files'] as List)
+        .map((e) => FileInfoMapper.fromJson((e as Map).cast<String, dynamic>()))
+        .toList(),
+  });
+}
+
+Future<PickDirectoryResult?> specifyDirectoryAndroid({
+  required String initialPath,
+}) async {
+  final result = await _methodChannel.invokeMethod<Map>('specifyDirectory', {
+    'initialPath': initialPath,
+  });
+  if (result == null) {
+    return null;
+  }
+
+  return PickDirectoryResultMapper.fromJson({
+    'directoryUri': result['directoryUri'],
+    'files': (result['files'] as List)
+        .map((e) => FileInfoMapper.fromJson((e as Map).cast<String, dynamic>()))
+        .toList(),
   });
 }
 
@@ -37,7 +59,9 @@ Future<List<FileInfo>?> pickFilesAndroid() async {
     return null;
   }
 
-  return result.map((e) => FileInfoMapper.fromJson((e as Map).cast<String, dynamic>())).toList();
+  return result
+      .map((e) => FileInfoMapper.fromJson((e as Map).cast<String, dynamic>()))
+      .toList();
 }
 
 Future<void> createDirectory({

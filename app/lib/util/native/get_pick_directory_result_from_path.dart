@@ -6,8 +6,8 @@ Future<PickDirectoryResult?> getPickDirectoryResultFromPath(
     String directoryPath) async {
   final directory = Directory(directoryPath);
   bool directoryExists = await directory.exists();
-  bool isDirectory =
-      directory.statSync().type == FileSystemEntityType.directory;
+  var tp = directory.statSync().type;
+  bool isDirectory = tp == FileSystemEntityType.directory;
   if (directoryExists && isDirectory) {
     final uri = Uri.directory(directoryPath);
     final files = directory.listSync().whereType<File>().map((file) {

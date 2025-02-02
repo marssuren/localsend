@@ -17,6 +17,7 @@ import 'package:localsend_app/util/file_path_helper.dart';
 import 'package:localsend_app/util/image_converter.dart';
 import 'package:localsend_app/util/native/channel/android_channel.dart'
     as android_channel;
+import 'package:localsend_app/util/native/channel/android_channel.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
 import 'package:localsend_app/util/native/pick_directory_path.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
@@ -102,25 +103,27 @@ enum FilePickerOption {
 class PickFileAction extends AsyncGlobalAction {
   final FilePickerOption option;
   final BuildContext context;
+  final String? initialPath;
 
   PickFileAction({
     required this.option,
     required this.context,
+    this.initialPath, // 允许传入空值
   });
 
   @override
   Future<void> reduce() async {
     switch (option) {
       case FilePickerOption.file:
-        await _pickFiles(context, ref);
+        await _pickFiles(context, ref,initialPath);
         break;
       case FilePickerOption.folder:
         // ignore: use_build_context_synchronously
-        await _pickFolder(context, ref);
+        await _pickFolder(context, ref,initialPath);
         break;
       case FilePickerOption.media:
         // ignore: use_build_context_synchronously
-        await _pickMedia(context, ref);
+        await _pickMedia(context, ref,initialPath);
         break;
       case FilePickerOption.text:
         // ignore: use_build_context_synchronously
@@ -132,7 +135,7 @@ class PickFileAction extends AsyncGlobalAction {
         break;
       case FilePickerOption.app:
         // ignore: use_build_context_synchronously
-        await _pickApp(context);
+        await _pickApp(context,initialPath);
         break;
     }
   }
@@ -143,7 +146,7 @@ class PickFileAction extends AsyncGlobalAction {
   }
 }
 
-Future<void> _pickFiles(BuildContext context, Ref ref) async {
+Future<void> _pickFiles(BuildContext context, Ref ref, String? initialPath) async {
   if (checkPlatform([TargetPlatform.android])) {
     // On android, the files are copied to the cache which takes some time.
     // ignore: unawaited_futures
@@ -190,7 +193,7 @@ Future<void> _pickFiles(BuildContext context, Ref ref) async {
   }
 }
 
-Future<void> _pickFolder(BuildContext context, Ref ref) async {
+Future<void> _pickFolder(BuildContext context, Ref ref, String? initialPath) async {
   if (checkPlatform([TargetPlatform.android])) {
     try {
       await Permission.storage.request();
@@ -203,21 +206,21 @@ Future<void> _pickFolder(BuildContext context, Ref ref) async {
     return;
   }
 
-  // ignore: unawaited_futures
-  // showDialog(
-  //   context: context,
-  //   barrierDismissible: false,
-  //   builder: (_) => const LoadingDialog(),
-  // );
-
-
   await sleepAsync(200); // Wait for the dialog to be shown
   try {
     if (defaultTargetPlatform == TargetPlatform.android &&
         (ref.read(deviceInfoProvider).androidSdkInt ?? 0) >=
             android_channel.contentUriMinSdk) {
       // Android 8 and above have more predictable content URIs that we can parse.
-      final result = await android_channel.pickDirectoryAndroid();
+      PickDirectoryResult? result;
+      if (initialPath != null) {
+        result = await android_channel.specifyDirectoryAndroid(
+          initialPath: initialPath,
+        );
+      }
+      else{
+        result = await android_channel.pickDirectoryAndroid();
+      }
       if (result != null) {
         await ref
             .redux(selectedSendingFilesProvider)
@@ -252,7 +255,7 @@ Future<void> _pickFolder(BuildContext context, Ref ref) async {
 }
 
 
-Future<void> _pickMedia(BuildContext context, Ref ref) async {
+Future<void> _pickMedia(BuildContext context, Ref ref, String? initialPath) async {
   final oldBrightness = Theme.of(context).brightness;
   // ignore: use_build_context_synchronously
   final List<AssetEntity>? result = await AssetPicker.pickAssets(
@@ -362,7 +365,7 @@ Future<void> _pickClipboard(BuildContext context, Ref ref) async {
   ));
 }
 
-Future<void> _pickApp(BuildContext context) async {
+Future<void> _pickApp(BuildContext context, String? initialPath) async {
   // Currently, only Android APK
   await context.push(() => const ApkPickerPage());
 }
