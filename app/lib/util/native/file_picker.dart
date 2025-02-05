@@ -230,7 +230,13 @@ Future<void> _pickFolder(BuildContext context, Ref ref, String? initialPath) asy
         print(result);
       }
     } else {
-      final directoryPath = await pickDirectoryPath();
+      String? directoryPath;
+      if (initialPath != null){
+        directoryPath = initialPath;
+      }
+      else{
+        directoryPath = await pickDirectoryPath();
+      }
       if (directoryPath != null) {
         await ref
             .redux(selectedSendingFilesProvider)
