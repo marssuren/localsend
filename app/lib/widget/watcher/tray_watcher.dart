@@ -24,12 +24,16 @@ class _TrayWatcherState extends State<TrayWatcher> with TrayListener {
   @override
   void initState() {
     super.initState();
-    trayManager.addListener(this);
+    // 在nekoto中禁用localsend的托盘监听器
+    // 因为nekoto有自己的托盘管理
+    // trayManager.addListener(this);
   }
 
   @override
   void dispose() {
-    trayManager.removeListener(this);
+    // 在nekoto中禁用localsend的托盘监听器
+    // 因为nekoto有自己的托盘管理
+    // trayManager.removeListener(this);
     super.dispose();
   }
 

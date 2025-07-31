@@ -48,8 +48,7 @@ class LocalSendApp extends StatelessWidget {
     final (themeMode, colorMode) = ref.watch(settingsProvider
         .select((settings) => (settings.theme, settings.colorMode)));
     final dynamicColors = ref.watch(dynamicColorsProvider);
-    return TrayWatcher(
-      child: WindowWatcher(
+    return WindowWatcher(
         child: LifeCycleWatcher(
           onChangedState: (AppLifecycleState state) {
             switch (state) {
@@ -88,7 +87,6 @@ class LocalSendApp extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }

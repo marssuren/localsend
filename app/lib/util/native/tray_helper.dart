@@ -18,6 +18,10 @@ enum TrayEntry {
 }
 
 Future<void> initTray() async {
+  // 在nekoto中禁用localsend的托盘功能
+  // 因为nekoto有自己的托盘管理
+  return;
+  
   if (!checkPlatformHasTray()) {
     return;
   }
@@ -88,6 +92,10 @@ Future<void> showFromTray() async {
 }
 
 Future<void> destroyTray() async {
+  // 在nekoto中禁用localsend的托盘功能
+  // 因为nekoto有自己的托盘管理
+  return;
+  
   if (!checkPlatform([TargetPlatform.linux])) {
     await tm.trayManager.destroy();
   }
