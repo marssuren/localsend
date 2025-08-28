@@ -30,7 +30,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_markdown: 0.7.4+2
-  gal: 2.3.0
+  gal: 2.3.2
   glob: ^2.1.2
   image: 4.3.0
   image_picker: 1.1.2
@@ -60,7 +60,7 @@ dependencies:
   routerino: 0.8.0
   saf_stream: 0.10.0
   screen_retriever: 0.2.0
-  share_handler: 0.0.22
+  share_handler: 0.0.25
   shared_preferences: 2.3.3
   shared_preferences_platform_interface: any
   shared_storage: 0.8.1
