@@ -61,7 +61,7 @@ dependencies:
   saf_stream: 0.10.0
   screen_retriever: 0.2.0
   share_handler: 0.0.25
-  shared_preferences: 2.3.3
+  shared_preferences: ^2.5.3
   shared_preferences_platform_interface: any
   shared_storage: 0.8.1
   slang: 4.4.0
