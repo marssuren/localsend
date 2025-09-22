@@ -56,7 +56,7 @@ dependencies:
   pretty_qr_code: 3.3.0
   refena_flutter: 2.1.1
   refena_inspector_client: 2.0.1
-  rhttp: 0.13.0
+  rhttp: 0.11.1
   routerino: 0.8.0
   saf_stream: 0.10.0
   screen_retriever: 0.2.0
